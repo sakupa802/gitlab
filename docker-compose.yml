@@ -1,0 +1,44 @@
+version: '3'
+services:
+  gitlab:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: gitlab/gitlab-ce:latest
+    restart: always
+    hostname: gitlab.example.com
+    container_name: gitlab.example.com
+    volumes:
+      - ./gitlab_etc:/etc/gitlab
+      - ./gitlab_log:/var/log/gitlab
+      - ./gitlab_opt:/var/opt/gitlab
+      - ./gitlab_runner:/etc/gitlab-runner
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'http://gitlab.example.com:8018'
+        gitlab_rails['gitlab_shell_ssh_port'] = 8022
+    ports:
+      - "8018:8018"
+      - "8022:22"
+  gitlab-runner:
+    image: gitlab/gitlab-runner:latest
+    restart: always
+    hostname: gitlab-runner.example.com
+    container_name: gitlab-runner.example.com
+    volumes:
+      - ./var/run/docker.sock:/var/run/docker.sock
+      - ./gitlab_runner:/etc/gitlab-runner
+      - ./gitlab_etc:/etc/gitlab
+      - ./gitlab_log:/var/log/gitlab
+      - ./gitlab_opt:/var/opt/gitlab
+    depends_on:
+      - gitlab
+volumes:
+  gitlab_etc:
+    external: true
+  gitlab_log:
+    external: true
+  gitlab_opt:
+    external: true
+  gitlab_runner:
+    external: true
